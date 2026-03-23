@@ -3,7 +3,7 @@ import sqlite3
 from urllib.parse import quote, unquote
 
 
-db = sqlite3.connect('movies.sqlite')
+db = sqlite3.connect('krusty.db')
 
 
 @post('/reset')
@@ -32,6 +32,23 @@ def add_customer():
     url_encoded_name = quote(name)
     response.status = 201
     return {"location": "/customers/" + url_encoded_name}
+
+@get('/customers')
+def get_customers():
+    c = db.cursor()
+    c.execute('''SELECT name, address FROM customers''')
+    customers = c.fetchall()
+    customer_list = []
+
+    for line in customers: 
+        d = {
+            "name": line[0],
+            "address": line[1]
+        }
+        customer_list.append(d)
+    response.status = 200
+    return{"data": customer_list}
+
 
 
 
