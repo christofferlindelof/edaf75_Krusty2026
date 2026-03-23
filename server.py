@@ -49,6 +49,49 @@ def get_customers():
     response.status = 200
     return{"data": customer_list}
 
+@post('/ingredients')
+def post_ingredient():
+    c = db.cursor()
+    inData = request.json
+    ingredient = inData.get('ingredient')
+    unit = inData.get('unit')
+    c.execute('''INSERT INTO ingredients (ingredient, unit) VALUES (?,?)''',
+              (ingredient, unit))
+    db.commit()
+    
+    response.status = 201
+    url_encoded_ingredient = quote(ingredient)
+    return{"location": "/ingredient/" + url_encoded_ingredient}
+
+@post('/ingredients/<url_encoded_ingredient>/deliveries')
+def add_delivery(url_encoded_ingredient):
+    ingredient = unquote(url_encoded_ingredient)
+    inData = request.json
+    delivery_time = inData.get('deliveryTime')
+    quantity = inData.get('quantity')
+    c = db.cursor()
+    c.execute('''
+              UPDATE ingredients
+              SET quantity = quantity + ? 
+              WHERE ingredient = ?''', (quantity, ingredient))
+    db.commit()
+    c.execute('''
+              SELECT ingredient, quantity, unit 
+              FROM ingredients 
+              WHERE ingredient = ?''', (ingredient,))
+    line = c.fetchone()
+    
+    d = {
+            "ingredient": line[0],
+            "quantity": line[1],
+            "unit": line[2]
+        }
+    
+    response.status = 201
+    return{"data": d}
+
+
+
 
 
 
